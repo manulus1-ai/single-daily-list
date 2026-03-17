@@ -20,7 +20,7 @@ const App = () => {
     return (
       <ReviewScreen
         date={store.today}
-        openItems={store.openItemsFromYesterday}
+        openItems={store.openItemsFromPast}
         onSubmit={store.applyReview}
       />
     );

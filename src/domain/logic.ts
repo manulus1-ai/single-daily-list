@@ -40,6 +40,20 @@ export const generateDailyItemsForDate = (
   return [...existingItems, ...newItems];
 };
 
+export const generateDailyItemsForRange = (
+  templates: ItemTemplate[],
+  existingItems: DailyItem[],
+  startDate: string,
+  endDate: string
+): DailyItem[] => {
+  let updated = [...existingItems];
+  const range = datesBetween(startDate, endDate);
+  for (const date of range) {
+    updated = generateDailyItemsForDate(templates, updated, date);
+  }
+  return updated;
+};
+
 export const createManualItem = (
   title: string,
   recurrence: RecurrenceType,
@@ -133,6 +147,9 @@ export const datesBetween = (start: string, end: string): string[] => {
   }
   return dates;
 };
+
+export const isBefore = (a: string, b: string) => a < b;
+
 
 export const resolveToday = (lastOpenedDate: string | null) => {
   const today = todayLocalISO();

@@ -30,22 +30,25 @@ const ReviewScreen = ({ date, openItems, onSubmit }: Props) => {
       </header>
 
       <main className="list">
-        {openItems.map((item) => (
-          <div key={item.id} className="review-item">
-            <div className="title">{item.title}</div>
-            <div className="review-actions">
-              {(Object.keys(decisionLabel) as ReviewDecision[]).map((d) => (
-                <button
-                  key={d}
-                  className={decisions[item.id] === d ? "chip active" : "chip"}
-                  onClick={() => setDecisions((prev) => ({ ...prev, [item.id]: d }))}
-                >
-                  {decisionLabel[d]}
-                </button>
-              ))}
+        {[...openItems]
+          .sort((a, b) => (a.date === b.date ? a.title.localeCompare(b.title) : a.date.localeCompare(b.date)))
+          .map((item) => (
+            <div key={item.id} className="review-item">
+              <div className="title">{item.title}</div>
+              <div className="sub">{formatLongDate(item.date)}</div>
+              <div className="review-actions">
+                {(Object.keys(decisionLabel) as ReviewDecision[]).map((d) => (
+                  <button
+                    key={d}
+                    className={decisions[item.id] === d ? "chip active" : "chip"}
+                    onClick={() => setDecisions((prev) => ({ ...prev, [item.id]: d }))}
+                  >
+                    {decisionLabel[d]}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </main>
 
       <footer className="footer">

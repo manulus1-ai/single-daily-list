@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { todayLocalISO } from "../domain/date";
+import { addDays, todayLocalISO } from "../domain/date";
 import {
   applyCompletion,
   applyReviewDecisions,
   createManualItem,
-  generateDailyItemsForDate,
-  getOpenItemsFromDate,
+  generateDailyItemsForRange,
+  isBefore,
   resolveToday
 } from "../domain/logic";
 import { loadStore, saveStore } from "../domain/storage";
@@ -32,17 +32,20 @@ export const useStore = () => {
 
   const { today } = resolveToday(lastOpenedDate);
 
-  const openItemsFromYesterday = useMemo(() => {
+  const openItemsFromPast = useMemo(() => {
     if (!lastOpenedDate) return [];
     if (lastOpenedDate === today) return [];
-    const open = getOpenItemsFromDate(dailyItems, lastOpenedDate);
-    return open;
+    return dailyItems.filter((i) => i.status === "open" && isBefore(i.date, today));
   }, [dailyItems, lastOpenedDate, today]);
 
-  const needsReview = openItemsFromYesterday.length > 0 && lastOpenedDate !== today;
+  const needsReview = openItemsFromPast.length > 0 && lastOpenedDate !== today;
 
   const ensureTodayGenerated = () => {
-    setDailyItems((prev) => generateDailyItemsForDate(templates, prev, today));
+    setDailyItems((prev) => {
+      if (!lastOpenedDate) return generateDailyItemsForRange(templates, prev, today, today);
+      const start = lastOpenedDate < today ? addDays(lastOpenedDate, 1) : today;
+      return generateDailyItemsForRange(templates, prev, start, today);
+    });
   };
 
   const setLastOpenedToToday = () => setLastOpenedDate(today);
@@ -90,7 +93,7 @@ export const useStore = () => {
     today,
     todayItems,
     needsReview,
-    openItemsFromYesterday,
+    openItemsFromPast,
     ensureTodayGenerated,
     setLastOpenedToToday,
     createItem,
