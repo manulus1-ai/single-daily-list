@@ -14,6 +14,14 @@ const App = () => {
     }
   }, [store.hydrated, store.needsReview]);
 
+  useEffect(() => {
+    if (!store.hydrated) return;
+    if (store.needsReview) return;
+    if (store.viewDate >= store.today) {
+      store.ensureDateGenerated(store.viewDate);
+    }
+  }, [store.hydrated, store.needsReview, store.viewDate, store.today]);
+
   if (!store.hydrated) return null;
 
   if (store.needsReview) {
@@ -28,10 +36,12 @@ const App = () => {
 
   return (
     <TodayScreen
-      date={store.today}
-      items={store.todayItems}
+      date={store.viewDate}
+      items={store.viewItems}
       onCreate={store.createItem}
       onUpdateStatus={store.updateItemStatus}
+      onChangeDate={store.setSelectedDate}
+      today={store.today}
     />
   );
 };

@@ -15,6 +15,7 @@ export const useStore = () => {
   const [templates, setTemplates] = useState<ItemTemplate[]>([]);
   const [dailyItems, setDailyItems] = useState<DailyItem[]>([]);
   const [lastOpenedDate, setLastOpenedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -32,6 +33,11 @@ export const useStore = () => {
 
   const { today } = resolveToday(lastOpenedDate);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    setSelectedDate(today);
+  }, [hydrated, today]);
+
   const openItemsFromPast = useMemo(() => {
     if (!lastOpenedDate) return [];
     if (lastOpenedDate === today) return [];
@@ -48,20 +54,25 @@ export const useStore = () => {
     });
   };
 
+  const ensureDateGenerated = (date: string) => {
+    setDailyItems((prev) => generateDailyItemsForRange(templates, prev, date, date));
+  };
+
   const setLastOpenedToToday = () => setLastOpenedDate(today);
 
   const createItem = (
     title: string,
     recurrence: "none" | "daily" | "weekly",
     recurrence_days: number[],
-    requires_input: boolean
+    requires_input: boolean,
+    date: string
   ) => {
     const result = createManualItem(
       title,
       recurrence,
       recurrence_days,
       requires_input,
-      today,
+      date,
       templates,
       dailyItems
     );
@@ -81,9 +92,11 @@ export const useStore = () => {
     setLastOpenedDate(targetDate);
   };
 
-  const todayItems = useMemo(
-    () => dailyItems.filter((i) => i.date === today),
-    [dailyItems, today]
+  const viewDate = selectedDate ?? today;
+
+  const viewItems = useMemo(
+    () => dailyItems.filter((i) => i.date === viewDate),
+    [dailyItems, viewDate]
   );
 
   return {
@@ -91,10 +104,14 @@ export const useStore = () => {
     templates,
     dailyItems,
     today,
-    todayItems,
+    viewDate,
+    viewItems,
+    selectedDate,
+    setSelectedDate,
     needsReview,
     openItemsFromPast,
     ensureTodayGenerated,
+    ensureDateGenerated,
     setLastOpenedToToday,
     createItem,
     updateItemStatus,
